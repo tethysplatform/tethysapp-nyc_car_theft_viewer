@@ -1,0 +1,56 @@
+{% extends "tethys_layouts/map_layout/map_layout.html" %}
+{% load static %}
+{% load tethys_gizmos %}
+
+{% block app_content %}
+  {{ block.super }} 
+  <div id="popup" class="ol-popup">
+    <div id="popup-content"></div>
+  </div>
+  <div id="legend" class="legend"></div>
+  <div id="loading-overlay">
+    <img id="loading-img" src="{% static 'nyc_car_theft_viewer/images/car-loading.gif' %}" alt="Loading...">
+  </div>
+{% endblock %}
+
+{% block custom_map_tabs %}
+  {{ block.super }}
+  <li class="nav-item active" role="presentation">
+    <button class="nav-link"
+      id="form-tab-toggle"
+      data-bs-toggle="tab"
+      role="tab"
+      data-bs-target="#form-tab-panel"
+      aria-controls="form-tab-panel"
+      aria-selected="true">Search</button>
+  </li>
+{% endblock %}
+
+{% block custom_map_tab_panels %}
+  {{ block.super }}
+  <div class="tab-pane show" id="form-tab-panel" role="tabpanel" aria-labelledby="form-tab-toggle">
+    <div id="form-container">
+      <br>
+      <form id="search-form" method="POST">
+        {% csrf_token %}
+        {% gizmo SelectInput borough %}
+        {% gizmo DatePicker start_date %}
+        {% gizmo DatePicker end_date %}
+        {% gizmo SelectInput group_by %}
+        <div class="button-div">
+          {% gizmo Button submit_button %}
+        </div>
+      </form>
+      <br>
+      <form id="update-settings-form" method="POST">
+        {% csrf_token %}
+        {% gizmo DatePicker plot_start_date %}
+        {% gizmo DatePicker plot_end_date %}
+        {% gizmo SelectInput sort_type %}
+        <div class="button-div">
+          {% gizmo Button update_settings_button %}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
