@@ -57,28 +57,84 @@ class NYCCarTheftViewerMap(MapLayout):
     
     def get_context(self, request, *args, **kwargs):
         # Create form gizmos
-        borough = SelectInput(display_text='Borough', name='borough', 
-                              multiple=False, options=[('Select a borough', ''),
-                                                       ('Bronx', 'bronx'), 
-                                                       ('Brooklyn', 'brooklyn'), 
-                                                       ('Manhattan', 'manhattan'), 
-                                                       ('Queens', 'queens'), 
-                                                       ('Staten Island', 'staten_island')])
+        borough = SelectInput(display_text='Borough', 
+                              name='borough', 
+                              multiple=False, 
+                              options=[('Select a borough', ''),
+                                       ('Bronx', 'bronx'), 
+                                       ('Brooklyn', 'brooklyn'), 
+                                       ('Manhattan', 'manhattan'), 
+                                       ('Queens', 'queens'), 
+                                       ('Staten Island', 'staten_island')])
+        
+        client = Socrata("data.cityofnewyork.us", None)
+
+        # Get the latest incident date in the dataset
+        last_incident_query = client.get("a9pz-ixz5", select="cmplnt_fr_dt", order="cmplnt_fr_dt DESC", limit=1)
+        last_incident_timestamp = last_incident_query[0]['cmplnt_fr_dt']
+        last_incident_date = datetime.strptime(last_incident_timestamp, '%Y-%m-%dT%H:%M:%S.%f').strftime('%m/%d/%Y')
+
+        # Get the first incident date in the dataset
+        first_incident_query = client.get("a9pz-ixz5", select="cmplnt_fr_dt", order="cmplnt_fr_dt ASC", limit=1)
+        first_incident_timestamp = first_incident_query[0]['cmplnt_fr_dt']
+        first_incident_date = datetime.strptime(first_incident_timestamp, '%Y-%m-%dT%H:%M:%S.%f').strftime('%m/%d/%Y')
                 
-        start_date_picker = DatePicker(display_text='Start Date', name='start_date', initial='09/30/2024', end_date='09/30/2024', attributes={"class": "form-input"})
-        end_date_picker = DatePicker(display_text='End Date', name='end_date', initial='09/30/2024', end_date='09/30/2024', attributes={"class": "form-input"})
-        grouping_picker = SelectInput(display_text='Group by', name='group_by', multiple=False, options=[('Time of day', 'time_of_day'), ('Day of week', 'day_of_week'), ('Month', 'month')], initial='time_of_day')
-        submit_button = Button(display_text='Search', name='submit', submit=True, style='success', attributes={"form": "search-form"})
+        start_date_picker = DatePicker(display_text='Start Date', 
+                                       name='start_date', 
+                                       initial=last_incident_date, 
+                                       start_date=first_incident_date, 
+                                       end_date=last_incident_date, 
+                                       attributes={"class": "form-input"})
+        
+        end_date_picker = DatePicker(display_text='End Date', 
+                                     name='end_date', 
+                                     initial=last_incident_date, 
+                                     start_date=first_incident_date, 
+                                     end_date=last_incident_date, 
+                                     attributes={"class": "form-input"})
+        
+        grouping_picker = SelectInput(display_text='Group by', 
+                                      name='group_by', 
+                                      multiple=False, 
+                                      options=[('Time of day', 'time_of_day'), ('Day of week', 'day_of_week'), ('Month', 'month')], 
+                                      initial='time_of_day')
+        
+        submit_button = Button(display_text='Search', 
+                               name='submit', 
+                               submit=True, 
+                               style='success', 
+                               attributes={"form": "search-form"})
 
         # Get current plot settings
         plot_start_date_setting_val = self.app.get_custom_setting('plot_start_date')
         plot_end_date_setting_val = self.app.get_custom_setting('plot_end_date')
         sort_type_setting_val = self.app.get_custom_setting('sort_type')
 
-        plot_start_date_picker = DatePicker(display_text='Plot Start Date', name='plot_start_date', initial=plot_start_date_setting_val, end_date='09/30/2024', attributes={"class": "form-input"})
-        plot_end_date_picker = DatePicker(display_text='Plot End Date', name='plot_end_date', initial=plot_end_date_setting_val, end_date='09/30/2024', attributes={"class": "form-input"})
-        sort_type = SelectInput(display_text='Sort Type', name='sort_type', multiple=False, options=[('Month', 'month'), ('Week', 'week')], initial=sort_type_setting_val)
-        update_settings_button = Button(display_text='Update Plot Settings', name='update_settings', submit=True, style='success', attributes={"form": "update-settings-form"})
+        plot_start_date_picker = DatePicker(display_text='Plot Start Date', 
+                                            name='plot_start_date', 
+                                            initial=plot_start_date_setting_val, 
+                                            start_date=first_incident_date, 
+                                            end_date=last_incident_date, 
+                                            attributes={"class": "form-input"})
+        
+        plot_end_date_picker = DatePicker(display_text='Plot End Date', 
+                                          name='plot_end_date', 
+                                          initial=plot_end_date_setting_val, 
+                                          start_date=first_incident_date, 
+                                          end_date=last_incident_date, 
+                                          attributes={"class": "form-input"})
+        
+        sort_type = SelectInput(display_text='Sort Type', 
+                                name='sort_type', 
+                                multiple=False, 
+                                options=[('Month', 'month'), ('Week', 'week')], 
+                                initial=sort_type_setting_val)
+        
+        update_settings_button = Button(display_text='Update Plot Settings', 
+                                        name='update_settings', 
+                                        submit=True, 
+                                        style='success', 
+                                        attributes={"form": "update-settings-form"})
 
         # Prepare context and add gizmos
         context = super().get_context(request, *args, **kwargs)
@@ -168,7 +224,10 @@ class NYCCarTheftViewerMap(MapLayout):
         if not borough:
             return JsonResponse({'error': 'Please select a borough.'}, status=400)
 
-        if start_date > end_date:
+        start_date_object = datetime.strptime(start_date, "%m/%d/%Y")
+        end_date_object = datetime.strptime(end_date, "%m/%d/%Y")
+
+        if start_date_object > end_date_object:
             return JsonResponse({'error': 'Start date must be before end date.'}, status=400)
 
         # Run the query and color code the results based on the selected grouping option
