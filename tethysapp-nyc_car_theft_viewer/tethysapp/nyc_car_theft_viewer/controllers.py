@@ -12,7 +12,7 @@ from tethys_sdk.gizmos import SelectInput, TextInput, Button, DatePicker
 
 from .app import NycCarTheftViewer as App
 
-@controller(name='home', app_workspace=True)
+@controller(name='home', app_resources=True)
 class NYCCarTheftViewerMap(MapLayout):
     app = App
     base_template = 'nyc_car_theft_viewer/base.html'
@@ -25,9 +25,9 @@ class NYCCarTheftViewerMap(MapLayout):
     basemaps = ['OpenStreetMap', 'ESRI']
     default_map_extent=[-74.40251381902671, 40.4396142607784, -73.48612422304846, 40.969123112654955]
 
-    def compose_layers(self, request, map_view, app_workspace, *args, **kwargs):
+    def compose_layers(self, request, map_view, app_resources, *args, **kwargs):
         # Load GeoJSON file
-        geojson_file = Path(app_workspace.path) / 'nyc_car_theft_tracker' / 'data' / 'borough_boundaries.geojson'
+        geojson_file = Path(app_resources.path) / 'borough_boundaries.geojson'
 
         # Load GeoJSON data
         with open(geojson_file) as f:
@@ -193,7 +193,7 @@ class NYCCarTheftViewerMap(MapLayout):
         return time_series, grouped_results
     
     def get_plot_for_layer_feature(self, request, layer_name, feature_id, layer_data, 
-                                feature_props, app_workspace, *args, **kwargs):    
+                                feature_props, app_resources, *args, **kwargs):    
         """Override the default get_plot_for_layer_feature method to return a bar plot of car thefts """
         # Format the borough name for displaying in the plot title
         borough = feature_props['boro_name'].upper()
