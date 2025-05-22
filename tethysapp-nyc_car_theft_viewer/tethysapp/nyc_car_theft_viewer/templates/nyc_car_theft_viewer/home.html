@@ -13,22 +13,11 @@
   </div>
 {% endblock %}
 
-{% block custom_map_tabs %}
-  {{ block.super }}
-  <li class="nav-item active" role="presentation">
-    <button class="nav-link"
-      id="form-tab-toggle"
-      data-bs-toggle="tab"
-      role="tab"
-      data-bs-target="#form-tab-panel"
-      aria-controls="form-tab-panel"
-      aria-selected="true">Search</button>
-  </li>
+{% block map_tabs %}
 {% endblock %}
 
-{% block custom_map_tab_panels %}
-  {{ block.super }}
-  <div class="tab-pane show" id="form-tab-panel" role="tabpanel" aria-labelledby="form-tab-toggle">
+{% block map_tab_panels %}
+<div class="tab-pane" id="form-tab-panel" role="tabpanel" aria-labelledby="form-tab-toggle">
     <div id="form-container">
       <br>
       <form id="search-form" method="POST">
@@ -54,3 +43,5 @@
     </div>
   </div>
 {% endblock %}
+
+
