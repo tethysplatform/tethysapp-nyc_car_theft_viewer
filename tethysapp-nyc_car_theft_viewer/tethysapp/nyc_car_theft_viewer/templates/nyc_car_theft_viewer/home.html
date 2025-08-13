@@ -2,6 +2,12 @@
 {% load static %}
 {% load tethys_gizmos %}
 
+{% block header_buttons %}
+  <div class="header-button">
+    <a data-bs-toggle="modal" data-bs-target="#infoModal"><i class="bi bi-info"></i></a>
+  </div>
+{% endblock %}
+
 {% block app_content %}
   {{ block.super }} 
   <div id="popup" class="ol-popup">
@@ -44,4 +50,30 @@
   </div>
 {% endblock %}
 
+{% block after_app_content %}
+{{ block.super }}
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="infoModalLabel">NYC Car Theft Viewer Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="info-modal-text-box">
+            <p>This application visualizes car theft data in New York City using data from the NYPD.</p>
+            <p><a href="https://data.cityofnewyork.us/Public-Safety/Auto-theft-data-YTD/a9pz-ixz5/about_data">Learn more about the NYC car theft data.</a>.</p>
+          </div>
+            <div class="info-modal-text-box">
+            <p>Select a borough from the drop-down menu on the left and choose dates, then click "Search" to view all incidents during the chosen time period on the map.</p>
+            <p>Alternatively, select a borough on the map to view its name and borough code. You can then click "Plot" to visualize data for that borough for the selected time period on a graph. To update the time period, choose start and end dates, select the sort type, and click "Update Plot Settings".</p>
+            </div>
+          <div class="info-modal-text-box">
+            <p>View the <a href="https://github.com/tethysplatform/tethysapp-nyc_car_theft_viewer">source code on GitHub</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
 
